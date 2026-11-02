@@ -1,0 +1,422 @@
+<title>Luv Michael Room 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: model fills the left, item list on the right; stacks on phones. Purple = proposed, grey/wood = existing. */
+:root{
+  --bg:#f5f4f8; --panel:#ffffff; --fg:#1e1838; --muted:#625b7c; --line:#e1ddec;
+  --accent:#5b2fb3; --accent-soft:#ece6fa; --scene:#ece9f2;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Public Sans", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15121f; --panel:#1d1929; --fg:#efecf7; --muted:#a69fbf; --line:#2f2942;
+  --accent:#b39cff; --accent-soft:#2c2347; --scene:#221d31; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15121f; --panel:#1d1929; --fg:#efecf7; --muted:#a69fbf; --line:#2f2942;
+  --accent:#b39cff; --accent-soft:#2c2347; --scene:#221d31; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.5}
+.wrap{max-width:1400px;margin:0 auto;padding-block:20px 32px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:grid;gap:14px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:10px 24px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(24px,3.2vw,34px);line-height:1.1;margin:0;text-wrap:balance}
+.sub{margin:4px 0 0;color:var(--muted);max-width:70ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
+@media (max-width:900px){.main{grid-template-columns:1fr}}
+.viewer{position:relative;background:var(--scene);border:1px solid var(--line);border-radius:10px;overflow:hidden;height:min(72vh,720px);min-height:420px}
+.viewer canvas{display:block;width:100%;height:100%;touch-action:none}
+.controls{position:absolute;left:10px;top:10px;display:flex;flex-wrap:wrap;gap:6px;z-index:3}
+.controls label,.controls button{font:500 12px var(--body);background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:5px 10px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.controls button:focus-visible,.controls input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{position:absolute;left:10px;bottom:10px;font-size:12px;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 8px;z-index:3}
+.lbl{position:absolute;transform:translate(-50%,-50%);font-size:11px;font-weight:500;color:#2b2540;background:rgba(255,255,255,.88);border:1px solid #d6d1e3;border-radius:4px;padding:1px 6px;white-space:nowrap;pointer-events:none;z-index:1}
+.lbl.wall{font-style:italic}
+#labels{position:absolute;inset:0;pointer-events:none}
+.tip{position:absolute;z-index:4;width:260px;max-width:calc(100% - 20px);background:var(--panel);color:var(--fg);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:10px 12px;box-shadow:0 8px 24px rgba(20,10,50,.18);pointer-events:none}
+.tip.pinned{pointer-events:auto}
+.tip h3{font:600 14px/1.3 var(--body);margin:0 22px 4px 0}
+.tip .meta{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tip .why{font-size:12.5px;margin:6px 0}
+.tip a{color:var(--accent);font-weight:600;font-size:12.5px;word-break:break-all}
+.tip .url{font-size:11.5px;color:var(--muted);word-break:break-all;margin-top:2px}
+.tip .pinhint{font-size:11px;color:var(--muted);margin-top:6px}
+.tip .x{position:absolute;right:6px;top:4px;border:0;background:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1}
+aside{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:12px;max-height:min(72vh,720px);overflow:auto;min-width:0}
+@media (max-width:900px){aside{max-height:none}}
+aside h2{font-family:var(--display);font-weight:500;font-size:18px;margin:0}
+.zone{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:4px 0 2px}
+ul.items{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+ul.items button{all:unset;box-sizing:border-box;width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:7px 8px;border-radius:6px;cursor:pointer}
+ul.items button:hover,ul.items button.on{background:var(--accent-soft)}
+ul.items button:focus-visible{outline:2px solid var(--accent)}
+.iname{font-weight:500}
+.iprice{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;text-align:right}
+.iqty{grid-column:1/-1;font-size:12px;color:var(--muted)}
+.note{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin:0}
+.unplaced{font-size:12.5px;background:var(--accent-soft);border-radius:6px;padding:8px 10px;margin:0}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Luv Michael Room: Rest Area &amp; Materials</h1>
+      <p class="sub">Tier 1 items from the materials list, placed in the team's room model. Left wall shows the three sash windows from the partner's walkthrough video. Metal shelves and backdrop corner removed, rest zone enlarged, U-table pushed right, navy table moved beside the desk, name bins (TROFAST) left of the cubbies, step stands on the sign table by the door. Not to scale; positions are a proposal.</p>
+    </div>
+    <div class="legend">
+      <span><i class="sw" style="background:#6a45c9"></i>Proposed item (hover for link)</span>
+      <span><i class="sw" style="background:#c9c2dd"></i>Team check-in proposal</span>
+      <span><i class="sw" style="background:#b8b6bd"></i>Existing</span>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="viewer" id="viewer">
+      <div class="controls">
+        <label><input type="checkbox" id="tLabels" checked> Labels</label>
+        <label><input type="checkbox" id="tCheck" checked> Check-in items</label>
+        <button type="button" id="vReset">Reset view</button>
+        <button type="button" id="vRest">Rest zone</button>
+        <button type="button" id="vTop">Top down</button>
+      </div>
+      <div id="labels"></div>
+      <div class="tip" id="tip" hidden></div>
+      <div class="hint">Drag to rotate · scroll or pinch to zoom · click an item to pin its link</div>
+    </div>
+
+    <aside>
+      <h2>Items in this view</h2>
+      <div id="list"></div>
+      <p class="unplaced"><strong>55" TV + tilting mount: not placed.</strong> With windows on the left wall, the rest zone has no solid wall section wide enough for a 55" screen. Ask the partner which wall could take it, or consider a rolling stand.</p>
+      <p class="note">Prices from the materials list, checked Nov 1, 2026. Quantities shown are the tier 1 amounts.</p>
+    </aside>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+const ITEMS = {
+  mittzon:{zone:"Rest zone",name:"IKEA MITTZON divider + acoustic screen",qty:"4 dividers",price:"$310 each",why:"Rolls on locking castors to wall off the rest zone and dampen noise; screen cover is machine-washable.",url:"https://www.ikea.com/us/en/p/mittzon-acoustic-screen-f-frame-w-castors-gunnared-beige-20528637/"},
+  rug:{zone:"Rest zone",name:"Washable 6 x 9 ft area rug",qty:"1",price:"$115.94",why:"Marks the rest corner on the floor and softens sound.",url:"https://homedepot.com/b/Flooring-Rugs/6-X-9/Washable/02-in/N-5yc1vZarfmZ1z0vjnaZ1z0z6jtZ1z1wcj1"},
+  fuf:{zone:"Rest zone",name:"Big Joe Fuf 5 ft foam bean bag",qty:"2",price:"$124.99 each",why:"Floor seating; foam fill never goes flat and the cover comes off to wash.",url:"https://www.walmart.com/ip/Big-Joe-Fuf-XL-Foam-Filled-Bean-Bag-Chair-with-Removable-Cover-Fog-Lenox-Durable-Woven-Polyester-5-feet-Giant/556857910"},
+  poang:{zone:"Rest zone",name:"IKEA POÄNG armchair, birch veneer/Knisa light beige",qty:"2",price:"$149 each",why:"A seat-and-a-book reset for anyone who would rather not sit on the floor. $99 in-store for IKEA Family members through Dec 24.",url:"https://www.ikea.com/us/en/p/poaeng-armchair-birch-veneer-knisa-light-beige-s59305928/"},
+  lamp:{zone:"Rest zone",name:"IKEA SOLVINDEN dimmable floor lamp",qty:"2",price:"$49.99 each",why:"Warm, dimmable light so the corner can be softer than the overheads.",url:"https://www.ikea.com/us/en/p/solvinden-floor-lamp-dimmable-red-50618028/"},
+  shredder:{zone:"Rest zone",name:"MUJI Handy Shredder (hand crank)",qty:"2",price:"$16.90 each",why:"Supports paper shredding as a reset; no motor, the user sets the pace.",url:"https://www.muji.us/products/handy-shredder-s915"},
+  shade:{zone:"Rest zone",name:"Aosky blackout cordless roller shade",qty:"4 windows",price:"$78.64 each",why:"Room-darkening for the rest zone windows; cordless for safety. Measure each window first.",url:"https://homedepot.com/p/Aosky-Blackout-Cordless-Roller-Shades-Thermal-Insulated-Polyester-UV-Protection-for-Home-and-Office-74-in-W-x-72-in-L-HW-ZK-Black-7472/335413702"},
+  felt:{zone:"Whole room",name:"NetWell FELT acoustic panels, 4 x 8 ft",qty:"1 four-pack",price:"$580",why:"Cuts echo from the classes next door. Shown on the solid wall sections; mounting needs the church's OK.",url:"https://www.controlnoise.com/product/felt-panels/"},
+  mittzonWb:{zone:"Work stations",name:"IKEA MITTZON divider + screen + whiteboard",qty:"1",price:"$430",why:"Whiteboard face can carry a low-tech shared step board beside the work tables.",url:"https://www.ikea.com/us/en/p/mittzon-frame-w-cstrs-acoustic-sceen-whtbr-gunnared-beige-white-s09536177/"},
+  tray:{zone:"Work stations",name:"three by three felt·like·it! paper tray (tapered)",qty:"12",price:"$12.00 each",why:"Felt lets beads be handled without noise, and the 1.75 in tapered sides make it easy to carry a project without spilling. 13 x 9.5 in.",url:"https://threebythree.com/products/felt-like-it-paper-tray-tapered-storage-bins?variant=52853279129900"},
+  trofast:{zone:"Work stations",name:"IKEA TROFAST storage with boxes",qty:"2",price:"$119.99 each",why:"Replaces the blue name bins on the steel table: one box per participant with a name and photo label, 12 boxes across the two units. Sits below the window sills.",url:"https://www.ikea.com/us/en/p/trofast-storage-combination-with-boxes-white-gray-red-s59573389/"},
+  casters:{zone:"Work stations",name:"HOLKIE retractable workbench casters (4-pack)",qty:"3 packs",price:"$23.99 each",why:"Lets the stainless tables roll for cooking setup, then drop onto their feet. Check leg shape first.",url:"https://www.walmart.com/c/kp/tool-casters"}
+};
+
+const viewer=document.getElementById('viewer');
+const css=getComputedStyle(document.documentElement);
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(css.getPropertyValue('--scene').trim()||'#ece9f2');
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+viewer.prepend(renderer.domElement);
+
+const camera=new THREE.PerspectiveCamera(40,1,0.1,100);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true; controls.maxPolarAngle=Math.PI*0.49; controls.minDistance=3; controls.maxDistance=28;
+const VIEWS={
+  reset:{p:[13.5,9,11],t:[4.6,0.5,2.6]},
+  rest:{p:[4.6,4.4,4.6],t:[1.1,0.3,2.0]},
+  top:{p:[5,16,3.4],t:[5,0,3.2]}
+};
+function setView(v){camera.position.set(...v.p);controls.target.set(...v.t);controls.update();}
+setView(VIEWS.reset);
+
+scene.add(new THREE.HemisphereLight(0xffffff,0xb9b3c9,0.75));
+const sun=new THREE.DirectionalLight(0xffffff,0.65);
+sun.position.set(-4,10,3); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-8,right:8,top:8,bottom:-8,near:1,far:30}); sun.target.position.set(5,0,3);
+scene.add(sun,sun.target);
+
+function M(c,o={}){return new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.8,metalness:0},o));}
+function B(x0,x1,y0,y1,z0,z1,mat,parent){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(Math.max(x1-x0,.001),Math.max(y1-y0,.001),Math.max(z1-z0,.001)),mat);
+  m.position.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2); m.castShadow=true; m.receiveShadow=true;
+  (parent||scene).add(m); return m;
+}
+function Cyl(x,z,r,y0,y1,mat,parent){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,y1-y0,20),mat);m.position.set(x,(y0+y1)/2,z);m.castShadow=m.receiveShadow=true;(parent||scene).add(m);return m;}
+
+const labels=[]; const labelLayer=document.getElementById('labels');
+function label(text,x,y,z,cls){const d=document.createElement('div');d.className='lbl'+(cls?' '+cls:'');d.textContent=text;labelLayer.appendChild(d);labels.push({el:d,v:new THREE.Vector3(x,y,z)});return d;}
+
+// ---------- room shell ----------
+const H=2.8, LOW=0.35, T=0.12, W=10, D=5.4;
+const wallMat=M(0xd9d6df), lowWallMat=M(0xc9c5d1), frameMat=M(0xf7f7f5), glassMat=M(0x9fb6cf,{transparent:true,opacity:.45,roughness:.1});
+// floor with checker
+const cv=document.createElement('canvas');cv.width=cv.height=64;const cx=cv.getContext('2d');
+cx.fillStyle='#e9e4da';cx.fillRect(0,0,64,64);cx.fillStyle='#d3ccbe';cx.fillRect(0,0,32,32);cx.fillRect(32,32,32,32);
+const tex=new THREE.CanvasTexture(cv);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(W/0.6,D/0.6);tex.magFilter=THREE.NearestFilter;
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(W,D),new THREE.MeshStandardMaterial({map:tex,roughness:.9}));
+floor.rotation.x=-Math.PI/2;floor.position.set(W/2,0,D/2);floor.receiveShadow=true;scene.add(floor);
+B(5.31,6.39,-.01,0,D,6.57,M(0xe4dfd4));
+B(7.96,9.04,-.01,0,D,6.8,M(0xe4dfd4));
+
+function windowAt(axis,a,b,sill,head){
+  const g=new THREE.Group(); scene.add(g);
+  const wB=(p0,p1,y0,y1,d0,d1,m)=> axis==='x'? B(p0,p1,y0,y1,d0,d1,m,g) : B(d0,d1,y0,y1,p0,p1,m,g);
+  wB(a,b,sill,head,-T*0.6,-T*0.4,glassMat);
+  const f=0.045, w=b-a, h=head-sill;
+  wB(a,a+f,sill,head,-T*0.7,-T*0.3,frameMat); wB(b-f,b,sill,head,-T*0.7,-T*0.3,frameMat);
+  wB(a,b,sill,sill+f,-T*0.7,-T*0.3,frameMat); wB(a,b,head-f,head,-T*0.7,-T*0.3,frameMat);
+  wB(a,b,sill+h/2-f/2,sill+h/2+f/2,-T*0.7,-T*0.25,frameMat);
+  [1/3,2/3].forEach(t=>wB(a+w*t-.012,a+w*t+.012,sill,head,-T*0.65,-T*0.35,frameMat));
+  [1/4,3/4].forEach(t=>wB(a,b,sill+h*t-.012,sill+h*t+.012,-T*0.65,-T*0.35,frameMat));
+  wB(a-.05,b+.05,sill-.04,sill,-T*.5,0.06,frameMat); // sill ledge
+}
+function wallRun(axis,lo,hi,openings){
+  let cur=lo;
+  const S=(p0,p1,y0,y1)=> axis==='x'? B(p0,p1,y0,y1,-T,0,wallMat) : B(-T,0,y0,y1,p0,p1,wallMat);
+  openings.sort((p,q)=>p.a-q.a).forEach(o=>{
+    if(o.a>cur) S(cur,o.a,0,H);
+    S(o.a,o.b,0,o.sill); S(o.a,o.b,o.head,H);
+    windowAt(axis,o.a,o.b,o.sill,o.head); cur=o.b;
+  });
+  if(hi>cur) S(cur,hi,0,H);
+}
+// back wall (z=0): tall windows over the name-bin table, high windows over cubbies & counter
+wallRun('x',-T,W+T,[
+  {a:1.0,b:2.6,sill:.95,head:2.55},{a:2.8,b:4.4,sill:.95,head:2.55},
+  {a:4.9,b:6.6,sill:1.45,head:2.55},{a:6.9,b:8.6,sill:1.45,head:2.55}
+]);
+// LEFT wall (x=0): corrected from the partner's walkthrough video — three 6-over-6 sash windows, kraft board between the southern two
+const LW=[{a:.62,b:1.5,sill:.8,head:2.5},{a:1.98,b:2.86,sill:.8,head:2.5},{a:4.0,b:4.88,sill:.8,head:2.5}];
+wallRun('z',0,D,LW.map(o=>({...o})));
+B(0,.03,.55,2.45,3.02,3.82,M(0xc4a77d));
+label('Kraft board',0.05,2.6,3.42,'wall');
+label('Sash windows (from video)',0.05,2.75,1.2,'wall');
+// front wall (z=D) low, with closet + entry openings
+B(-T,5.31,0,LOW,D,D+T,lowWallMat); B(6.39,7.96,0,LOW,D,D+T,lowWallMat); B(9.04,W+T,0,LOW,D,D+T,lowWallMat);
+// right wall (x=W) low
+B(W,W+T,0,LOW,-T,D+T,lowWallMat);
+// closet + entry corridor
+B(5.19,5.31,0,LOW,D,6.69,lowWallMat); B(6.39,6.51,0,LOW,D,6.69,lowWallMat); B(5.19,6.51,0,LOW,6.57,6.69,lowWallMat);
+B(7.84,7.96,0,LOW,D,6.8,lowWallMat); B(9.04,9.16,0,LOW,D,6.8,lowWallMat);
+const greyMet=M(0xb7b5bc,{metalness:.3,roughness:.5});
+B(5.4,5.64,0,1.7,5.66,6.5,greyMet); B(6.06,6.3,0,1.7,5.66,6.5,greyMet);
+label('Storage closet',5.85,1.0,6.1); label('Entry',8.5,0.5,6.4);
+// green floor stripe
+const stripe=M(0x8fcf9c);
+B(8.4,8.6,0,.006,4.75,6.7,stripe); B(2.68,8.6,0,.006,4.75,4.95,stripe);
+label('Green floor stripe',5.2,0.15,4.85);
+
+// ---------- existing furniture ----------
+const steel=M(0xc8c8cd,{metalness:.55,roughness:.35}), wood=M(0xb98d5f), white=M(0xf2f1ee);
+function table(x0,x1,z0,z1,h,topMat,legMat){
+  B(x0,x1,h-.04,h,z0,z1,topMat);
+  [[x0+.05,z0+.05],[x1-.05,z0+.05],[x0+.05,z1-.05],[x1-.05,z1-.05]].forEach(([x,z])=>B(x-.025,x+.025,0,h-.04,z-.025,z+.025,legMat||greyMet));
+}
+// name-bin table and blue bins removed; TROFAST units take their place along the back wall
+B(4.66,6.96,0,.9,.1,.5,wood); for(let i=1;i<6;i++) B(4.66+i*.383-.01,4.66+i*.383+.01,0,.9,.09,.11,M(0x8f6a42));
+label('Cubbies',5.8,1.1,.3);
+B(7.0,8.76,0,.9,.1,.5,M(0xbdb9c2)); B(7.1,7.45,.9,1.15,.18,.42,M(0x55525c)); B(7.65,7.85,.9,1.2,.2,.4,M(0x8a8790)); B(8.05,8.25,.9,1.1,.2,.4,M(0x8a8790));
+label('Counter & bead oven',7.9,1.4,.3);
+// metal shelves on left wall
+// metal shelves removed to make room for the rest zone
+table(2.9,3.4,2.3,3.37,.75,M(0x3aa6a0)); label('Teal table',3.15,.95,2.85);
+B(.66,1.83,0,.9,3.8,4.06,M(0x3b3b40,{metalness:.4})); label('Wire rack',1.25,1.05,3.93);
+// backdrop corner removed (won't be in the room)
+// navy-cloth table + chairs, moved to the right wall beside the desk
+table(9.4,9.92,.08,1.92,.75,M(0x26306b)); label('Navy-cloth table',9.66,.95,1.0);
+function chair(x,z,rot){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;scene.add(g);B(-.2,.2,.42,.46,-.2,.2,white,g);B(-.2,.2,.46,.86,.17,.2,white,g);[[-.18,-.18],[.18,-.18],[-.18,.18],[.18,.18]].forEach(([a,b])=>B(a-.015,a+.015,0,.42,b-.015,b+.015,greyMet,g));}
+chair(9.16,.45,-Math.PI/2);chair(9.16,1.0,-Math.PI/2);chair(9.16,1.55,-Math.PI/2);
+// U-shaped stainless table
+const UX=1.66; // U-table pushed right
+const Useg=[[3.29,6.39,1.59,2.4],[3.29,3.99,2.4,3.31],[3.29,6.39,3.31,4.03]].map(s=>[s[0]+UX,s[1]+UX,s[2],s[3]]);
+Useg.forEach(s=>B(s[0],s[1],.86,.9,s[2],s[3],steel));
+B(3.29+UX,6.39+UX,.15,.18,1.59,2.4,steel);B(3.29+UX,6.39+UX,.15,.18,3.31,4.03,steel);
+const ULEGS=[[3.34,1.64],[6.34,1.64],[6.34,2.35],[3.34,3.98],[6.34,3.98],[6.34,3.36],[4.4,1.64],[4.4,3.98],[5.3,1.64],[5.3,3.98],[3.34,2.8],[3.94,2.8]].map(([x,z])=>[x+UX,z]);
+ULEGS.forEach(([x,z])=>B(x-.025,x+.025,0,.86,z-.025,z+.025,greyMet));
+label('U-shaped stainless table',4.9+UX,1.1,2.0); label('Cooking class + work table',4.9+UX,1.1,3.67);
+Cyl(5.98+UX,2.86,.22,0,.7,M(0x2c2c30)); label('Trash',5.98+UX,.9,2.86);
+// right side
+table(9.1,9.92,1.98,2.8,.75,white); B(9.6,9.85,.75,1.15,2.1,2.5,M(0x222222)); label('Desk',9.5,1.3,2.4);
+B(9.93,9.97,.9,1.9,2.96,3.62,M(0xfafafa)); label('Whiteboard',9.9,2.05,3.3);
+table(9.1,9.92,3.7,4.41,.8,steel); B(9.3,9.75,.8,1.2,4.0,4.04,M(0x3a63c9)); label('Sign table',9.5,1.35,4.05);
+// bowl rack removed
+
+// ---------- team check-in proposal ----------
+const checkGroup=new THREE.Group();scene.add(checkGroup);
+const lav=M(0xc9c2dd);
+const kiosk=new THREE.Group();kiosk.position.set(9.35,0,4.95);checkGroup.add(kiosk);
+B(-.2,.2,0,.03,-.2,.2,lav,kiosk);B(-.03,.03,0,.95,-.03,.03,lav,kiosk);
+const scr=B(-.2,.2,.85,1.15,-.02,.02,M(0x2a2540),kiosk);scr.rotation.x=-.25;
+function stand(x,y,z,r){const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=r||0;checkGroup.add(g);const a=B(-.1,.1,0,.18,-.005,.005,lav,g);a.rotation.x=.3;a.position.z=-.03;const b=B(-.1,.1,0,.18,-.005,.005,lav,g);b.rotation.x=-.3;b.position.z=.03;}
+stand(9.25,.8,3.82,Math.PI/2);stand(9.25,.8,4.28,Math.PI/2);stand(9.72,.8,3.82,Math.PI/2);stand(9.72,.8,4.28,Math.PI/2);
+const checkLabels=[label('Check-in tablet (team)',9.35,1.45,4.95),label('Step stands + status cards (team)',9.5,1.6,3.5)];
+
+// ---------- proposed items (hoverable) ----------
+const pickables=[]; const itemGroups={};
+function item(key){const g=new THREE.Group();g.userData.key=key;scene.add(g);(itemGroups[key]=itemGroups[key]||[]).push(g);return g;}
+function finish(g){g.traverse(o=>{if(o.isMesh){o.userData.key=g.userData.key;pickables.push(o);}});}
+const P={beige:M(0xd8cdb8),white:M(0xf4f2fa),purple:M(0x6a45c9),deep:M(0x4b2a9a),soft:M(0xb5a3ea),felt:M(0x8c78cf),shade:M(0x3a2b66)};
+
+// Rest zone footprint: NW corner, x 0–2.15, z 0.55–2.05
+function mittzon(x,z,rot,key,withWb){
+  const g=item(key);g.position.set(x,0,z);g.rotation.y=rot;
+  const fm=M(0xf4f2fa); [-.42,.42].forEach(a=>B(a-.02,a+.02,.06,2.05,-.02,.02,fm,g));
+  B(-.42,.42,2.01,2.05,-.02,.02,fm,g); B(-.25,.25,.0,.04,-.25,.25,fm,g);
+  [[-.38,-.2],[.38,-.2],[-.38,.2],[.38,.2]].forEach(([a,b])=>Cyl(a,b,.035,0,.07,M(0x444444),g));
+  B(-.4,.4,.12,1.98,-.025,.025,M(withWb?0xd8cdb8:0xb7a6e3),g);
+  if(withWb) B(-.38,.38,1.0,1.9,.026,.032,M(0xffffff,{roughness:.3}),g);
+  finish(g); return g;
+}
+mittzon(2.64,1.0,Math.PI/2,'mittzon'); mittzon(2.64,1.86,Math.PI/2,'mittzon'); mittzon(2.64,2.72,Math.PI/2,'mittzon');
+mittzon(1.0,3.64,0,'mittzon');
+mittzon(4.55,2.85,Math.PI/2,'mittzonWb',true);
+label('Rest zone (proposed)',1.3,2.4,2.0); label('Way in',2.0,.3,3.7);
+
+{const g=item('rug');B(.35,2.35,0,.012,1.2,3.3,M(0xd9cff3),g);finish(g);}
+function fuf(x,z){const g=item('fuf');const s=new THREE.Mesh(new THREE.SphereGeometry(.5,24,16),M(0x5b3fa6,{roughness:.95}));s.scale.set(1,.42,.85);s.position.set(x,.2,z);s.castShadow=true;g.add(s);finish(g);}
+fuf(.75,2.7); fuf(1.75,2.55);
+function poang(x,z,rot){const g=item('poang');g.position.set(x,0,z);g.rotation.y=rot;const w=M(0xc49a6c),c=M(0x7a5cc4);
+  B(-.3,.3,.35,.45,-.3,.25,c,g); const back=B(-.28,.28,.45,1.0,.2,.3,c,g); back.rotation.x=-.35; back.position.z=.32;
+  [-.32,.32].forEach(a=>{B(a-.025,a+.025,.0,.05,-.4,.35,w,g);B(a-.025,a+.025,.05,.55,-.38,-.33,w,g);B(a-.025,a+.025,.5,.55,-.38,.3,w,g);});
+  finish(g);}
+poang(.5,1.05,Math.PI*0.75); poang(1.9,1.05,-Math.PI*0.75);
+function lamp(x,z){const g=item('lamp');Cyl(x,z,.14,0,.03,M(0x4b2a9a),g);Cyl(x,z,.015,0,1.35,M(0x4b2a9a),g);const sh=new THREE.Mesh(new THREE.SphereGeometry(.16,16,12),M(0xfff1d0,{emissive:0xffd890,emissiveIntensity:.6}));sh.position.set(x,1.42,z);g.add(sh);finish(g);}
+lamp(.18,.72); lamp(1.2,.7);
+// RÅSKOG carts
+function cart(x,z){const g=item('raskog');const c=M(0x6a4bbf,{metalness:.3,roughness:.5});
+  [.12,.4,.68].forEach(y=>B(x-.18,x+.18,y,y+.02,z-.22,z+.22,c,g));
+  [[-.17,-.21],[.17,-.21],[-.17,.21],[.17,.21]].forEach(([a,b])=>B(x+a-.012,x+a+.012,.06,.75,z+b-.012,z+b+.012,c,g));
+  finish(g);return g;}
+{const g=item('shredder');[[2.85,.26],[3.05,.26]].forEach(([x,z])=>{B(x-.07,x+.07,.94,1.06,z-.05,z+.05,M(0xf0eef8),g);B(x+.07,x+.1,1.0,1.03,z-.01,z+.01,M(0x4b2a9a),g);});finish(g);}
+// blackout shades on the left-wall windows + the first tall back window
+{const g=item('shade');const sm=M(0x3a2b66);
+  LW.forEach(o=>B(.01,.07,o.head-.95,o.head+.08,o.a-.04,o.b+.04,sm,g));
+  B(.96,2.64,1.6,2.63,.01,.07,sm,g);
+  finish(g);}
+// felt panels on solid wall sections
+{const g=item('felt');const fm=M(0x8c78cf,{roughness:1});
+  B(.05,.95,1.0,2.5,.0,.035,fm,g);          // back wall, NW corner (above name-bin table)
+  B(8.75,9.9,.5,2.5,.0,.035,fm,g);           // back wall, NE pier
+  B(.0,.035,.9,2.4,1.54,1.94,fm,g);          // left wall pier between windows
+  B(4.45,4.85,1.0,2.5,.0,.035,fm,g);         // back wall pier between tall and high windows
+  finish(g);}
+// felt trays (34 x 24 x 4.5 cm) on the work tables
+{const g=item('tray');const out=M(0x7a8197,{roughness:1}),inn=M(0xece9e2,{roughness:1});
+  function tray(x,y,z,alongZ){const lx=alongZ?.12:.17,lz=alongZ?.17:.12;
+    B(x-lx,x+lx,y,y+.008,z-lz,z+lz,inn,g);
+    B(x-lx,x+lx,y,y+.045,z-lz,z-lz+.008,out,g);B(x-lx,x+lx,y,y+.045,z+lz-.008,z+lz,out,g);
+    B(x-lx,x-lx+.008,y,y+.045,z-lz,z+lz,out,g);B(x+lx-.008,x+lx,y,y+.045,z-lz,z+lz,out,g);}
+  [.35,.8,1.25,1.7].forEach(z=>tray(9.66,.75,z,true));           // navy-cloth table
+  [2.6,3.1].forEach(z=>tray(3.15,.75,z,true));                    // teal table
+  [5.6,6.5,7.4].forEach(x=>{tray(x,.9,2.0,false);tray(x,.9,3.67,false);}); // U-shaped stainless table
+  finish(g);}
+// TROFAST storage, south of the name-bin table
+function trofast(x0){const g=item('trofast');const fr=M(0xf4f2fa);
+  B(x0,x0+.03,0,.94,.55,.97,fr,g);B(x0+.96,x0+.99,0,.94,.55,.97,fr,g);B(x0,x0+.99,.91,.94,.55,.97,fr,g);
+  [.05,.36,.65].forEach((y,i)=>{B(x0+.06,x0+.47,y,y+.26,.58,.95,M([0x7d5bd6,0xb5a3ea,0x6a45c9][i]),g);B(x0+.52,x0+.93,y,y+.26,.58,.95,M([0xb5a3ea,0x6a45c9,0x7d5bd6][i]),g);});
+  g.position.z=-.5; // against the back wall
+  finish(g);}
+trofast(2.62); trofast(3.66); // directly left of the cubbies
+label('Name bins (TROFAST)',3.64,1.25,.25);
+// casters on U-table legs
+{const g=item('casters');const cm=M(0x4b1d8f);
+  ULEGS.forEach(([x,z])=>{const w=new THREE.Mesh(new THREE.TorusGeometry(.05,.022,8,16),cm);w.position.set(x+.07,.06,z);w.rotation.y=Math.PI/2;w.castShadow=true;g.add(w);B(x+.02,x+.12,.1,.13,z-.03,z+.03,cm,g);});
+  finish(g);}
+
+// ---------- list ----------
+const list=document.getElementById('list'); const rows={};
+const zones={}; Object.entries(ITEMS).forEach(([k,v])=>{(zones[v.zone]=zones[v.zone]||[]).push(k);});
+Object.entries(zones).forEach(([z,keys])=>{
+  const h=document.createElement('div');h.className='zone';h.textContent=z;list.appendChild(h);
+  const ul=document.createElement('ul');ul.className='items';list.appendChild(ul);
+  keys.forEach(k=>{const v=ITEMS[k];const li=document.createElement('li');const b=document.createElement('button');b.type='button';
+    b.innerHTML=`<span class="iname"></span><span class="iprice"></span><span class="iqty"></span>`;
+    b.querySelector('.iname').textContent=v.name;b.querySelector('.iprice').textContent=v.price;b.querySelector('.iqty').textContent='Qty '+v.qty;
+    b.addEventListener('mouseenter',()=>{if(!pinned){setHover(k);showTipAtItem(k,false);}});
+    b.addEventListener('mouseleave',()=>{if(!pinned){setHover(null);hideTip();}});
+    b.addEventListener('click',()=>{pin(k);showTipAtItem(k,true);});
+    li.appendChild(b);ul.appendChild(li);rows[k]=b;});
+});
+
+// ---------- hover / pin ----------
+const tip=document.getElementById('tip');
+let hoverKey=null, pinned=null;
+function setHover(k){
+  if(hoverKey===k) return;
+  [hoverKey].forEach(old=>{if(old&&old!==pinned) glow(old,false);});
+  hoverKey=k; if(k) glow(k,true);
+  Object.entries(rows).forEach(([kk,b])=>b.classList.toggle('on',kk===k||kk===pinned));
+  renderer.domElement.style.cursor=k?'pointer':'grab';
+}
+function glow(k,on){(itemGroups[k]||[]).forEach(g=>g.traverse(o=>{if(o.isMesh&&o.material&&o.material.emissive){
+  if(on){if(o.userData.e0===undefined){o.userData.e0=o.material.emissive.getHex();o.userData.ei=o.material.emissiveIntensity;}o.material.emissive.setHex(0xffb547);o.material.emissiveIntensity=.55;}
+  else if(o.userData.e0!==undefined){o.material.emissive.setHex(o.userData.e0);o.material.emissiveIntensity=o.userData.ei;}}}));}
+function fillTip(k,isPinned){
+  const v=ITEMS[k];tip.innerHTML='';
+  const h=document.createElement('h3');h.textContent=v.name;tip.appendChild(h);
+  const m=document.createElement('div');m.className='meta';m.textContent=`Qty ${v.qty} · ${v.price}`;tip.appendChild(m);
+  const w=document.createElement('div');w.className='why';w.textContent=v.why;tip.appendChild(w);
+  const a=document.createElement('a');a.href=v.url;a.target='_blank';a.rel='noopener';a.textContent='Open product page ↗';tip.appendChild(a);
+  const u=document.createElement('div');u.className='url';u.textContent=v.url;tip.appendChild(u);
+  if(isPinned){const x=document.createElement('button');x.className='x';x.type='button';x.setAttribute('aria-label','Close');x.textContent='×';x.onclick=()=>unpin();tip.appendChild(x);}
+  else{const p=document.createElement('div');p.className='pinhint';p.textContent='Click the item to pin this card and use the link.';tip.appendChild(p);}
+  tip.classList.toggle('pinned',!!isPinned); tip.hidden=false;
+}
+function placeTip(px,py){const r=viewer.getBoundingClientRect();const tw=tip.offsetWidth,th=tip.offsetHeight;
+  let x=px+16,y=py+16; if(x+tw>r.width-8)x=px-tw-16; if(y+th>r.height-8)y=r.height-th-8; tip.style.left=Math.max(8,x)+'px';tip.style.top=Math.max(8,y)+'px';}
+function itemCenter(k){const box=new THREE.Box3();(itemGroups[k]||[]).forEach(g=>box.expandByObject(g));return box.getCenter(new THREE.Vector3());}
+function project(v){const p=v.clone().project(camera);const r=viewer.getBoundingClientRect();return [(p.x+1)/2*r.width,(1-p.y)/2*r.height,p.z];}
+function showTipAtItem(k,isPinned){fillTip(k,isPinned);const [x,y]=project(itemCenter(k));placeTip(x,y);}
+function hideTip(){tip.hidden=true;}
+function pin(k){if(pinned&&pinned!==k) glow(pinned,false);pinned=k;glow(k,true);setHover(k);}
+function unpin(){const k=pinned;pinned=null;if(k)glow(k,false);setHover(null);hideTip();}
+
+const ray=new THREE.Raycaster(), mouse=new THREE.Vector2();
+function pick(e){const r=renderer.domElement.getBoundingClientRect();mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(mouse,camera);
+  const hits=ray.intersectObjects(pickables,false);return hits.length?hits[0].object.userData.key:null;}
+renderer.domElement.addEventListener('pointermove',e=>{
+  if(pinned||e.buttons) return;
+  const k=pick(e); setHover(k);
+  const r=viewer.getBoundingClientRect();
+  if(k){fillTip(k,false);placeTip(e.clientX-r.left,e.clientY-r.top);} else hideTip();
+});
+renderer.domElement.addEventListener('pointerleave',()=>{if(!pinned){setHover(null);hideTip();}});
+let down=null;
+renderer.domElement.addEventListener('pointerdown',e=>{down=[e.clientX,e.clientY];});
+renderer.domElement.addEventListener('pointerup',e=>{
+  if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5) return;
+  const k=pick(e); const r=viewer.getBoundingClientRect();
+  if(k){pin(k);fillTip(k,true);placeTip(e.clientX-r.left,e.clientY-r.top);} else unpin();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')unpin();});
+
+// ---------- toggles ----------
+const tLabels=document.getElementById('tLabels'), tCheck=document.getElementById('tCheck');
+tLabels.addEventListener('change',()=>{labelLayer.hidden=!tLabels.checked;});
+tCheck.addEventListener('change',()=>{checkGroup.visible=tCheck.checked;checkLabels.forEach(l=>l.hidden=!tCheck.checked);});
+document.getElementById('vReset').onclick=()=>setView(VIEWS.reset);
+document.getElementById('vRest').onclick=()=>setView(VIEWS.rest);
+document.getElementById('vTop').onclick=()=>setView(VIEWS.top);
+
+// ---------- render loop ----------
+function resize(){const r=viewer.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();}
+new ResizeObserver(resize).observe(viewer); resize();
+const mq=window.matchMedia('(prefers-color-scheme: dark)');
+function syncBg(){scene.background.set(getComputedStyle(document.documentElement).getPropertyValue('--scene').trim()||'#ece9f2');}
+mq.addEventListener&&mq.addEventListener('change',syncBg);
+new MutationObserver(syncBg).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+function loop(){
+  controls.update(); renderer.render(scene,camera);
+  if(!labelLayer.hidden){labels.forEach(l=>{const [x,y,z]=project(l.v);if(z>1){l.el.style.visibility='hidden';return;}l.el.style.visibility='';l.el.style.left=x+'px';l.el.style.top=y+'px';});}
+  requestAnimationFrame(loop);
+}
+loop();
+})();
+</script>
